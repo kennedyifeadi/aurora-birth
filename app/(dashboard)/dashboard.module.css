@@ -1,0 +1,274 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #F9FAFB;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1F2937;
+}
+
+.mainContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  padding-bottom: 6rem; /* Extra space for bottom nav */
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  height: 4.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(243, 232, 255, 0.7);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 1rem;
+  box-shadow: 0 -4px 20px rgba(168, 85, 247, 0.05);
+  z-index: 50;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  color: #6B7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+.navItem:hover {
+  color: #9333EA;
+}
+
+.navIcon {
+  font-size: 1.5rem;
+}
+
+/* Dashboard Content Styles */
+.greetingSection {
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s ease-out;
+}
+
+.greetingText {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.greetingSub {
+  color: #6B7280;
+  font-size: 0.95rem;
+}
+
+.progressCard {
+  background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1rem;
+  color: white;
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progressInfo h3 {
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.progressInfo p {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.progressCircle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.dashboardGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(224, 195, 252, 0.06);
+  border: 1px solid rgba(243, 232, 255, 0.4);
+  animation: fadeUp 0.6s ease-out backwards;
+}
+
+/* Delay for staggered enter animation */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cardTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.appointmentCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.addBtn {
+  background: #FAF5FF;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+  color: #9333EA;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addBtn:hover {
+  background: #F3E8FF;
+}
+
+.appointmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.appointmentDate {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.appointmentNote {
+  color: #6B7280;
+  font-size: 0.875rem;
+}
+
+.heartRateValue {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #EC4899;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.unit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #10B981; /* Green for normal */
+}
+
+.pulseIcon {
+  display: inline-block;
+  animation: pulse 1.5s infinite ease-in-out;
+  color: #EF4444;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* Simple Responsive overrides */
+@media (min-width: 768px) {
+  .dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .card:first-child {
+    grid-column: span 2;
+  }
+}
+
+/* Chart Styles */
+.chartContainer {
+  margin-top: 1.25rem;
+  height: 140px;
+  position: relative;
+}
+
+.chartSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+  margin-top: 0.75rem;
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Movement Card specifics */
+.movementGrid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  background: #DCFCE7;
+  color: #059669;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.subtext {
+  font-size: 0.825rem;
+  color: #6B7280;
+  margin-top: 0.25rem;
+}
