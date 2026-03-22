@@ -1,22 +1,55 @@
 'use client';
 
+import { useState } from 'react';
 import styles from '../dashboard.module.css';
+import { ResponsiveContainer, LineChart, Line, XAxis, Tooltip } from 'recharts';
+import { useUser } from '../context/UserContext';
+import AppointmentModal from '@/components/AppointmentModal';
+
+const chartData = [
+  { name: 'Mon', bpm: 135 },
+  { name: 'Tue', bpm: 140 },
+  { name: 'Wed', bpm: 142 },
+  { name: 'Thu', bpm: 138 },
+  { name: 'Fri', bpm: 145 },
+  { name: 'Sat', bpm: 141 },
+  { name: 'Sun', bpm: 142 },
+];
 
 export default function DashboardPage() {
-  const userName = "Sarah"; // Mock name
-  const pregnancyWeek = 24;
+  const { user, isProfileComplete, appointments, addAppointment, isLoading } = useUser();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const nextAppointment = appointments[0];
+
+  if (isLoading) {
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>Loading dashboard...</div>;
+  }
 
   return (
-    <div className={styles.greetingSection}>
-      <div>
-        <h1 className={styles.greetingText}>Good morning, {userName}</h1>
-        <p className={styles.greetingSub}>We hope you are resting well today.</p>
+    <div>
+      {/* Complete Profile banner */}
+      {!isProfileComplete && (
+        <div className={styles.banner}>
+          <span>💡 Complete your profile to get personalized health insights.</span>
+          <span className={styles.bannerLink} onClick={() => window.location.href = '/profile'}>
+            Go to Profile
+          </span>
+        </div>
+      )}
+
+      <div className={styles.greetingSection}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>
+          Good morning, {user?.name || 'Lovely Mother'}
+        </h1>
+        <p style={{ color: '#6B7280', fontSize: '0.95rem', marginTop: '0.15rem' }}>We hope you are resting well today.</p>
       </div>
 
+      {/* Pregnancy Progress banner */}
       <div className={styles.progressCard}>
         <div className={styles.progressInfo}>
-          <h3>Week {pregnancyWeek}</h3>
-          <p>Your baby is the size of a Cantaloupe 🍈</p>
+          <h3>Week 24</h3>
+          <p style={{ opacity: 0.9, fontSize: '0.875rem' }}>Your baby is the size of a Cantaloupe 🍈</p>
         </div>
         <div className={styles.progressCircle}>
           60%
@@ -27,12 +60,22 @@ export default function DashboardPage() {
         {/* Appointments Card */}
         <div className={styles.card}>
           <div className={styles.appointmentCardHeader}>
-            <span className={styles.cardTitle}>Next Appointment</span>
-            <button className={styles.addBtn}>+ Add</button>
+            <span className={styles.cardTitle}>Next Visit</span>
+            <button className={styles.addBtn} onClick={() => setIsModalOpen(true)}>+ Add</button>
           </div>
-          <div className={styles.appointmentDetails}>
-            <span className={styles.appointmentDate}>Tuesday, March 24 at 10:00 AM</span>
-            <span className={styles.appointmentNote}>Regular checkup with Dr. Aris</span>
+          <div style={{ marginTop: '0.5rem' }}>
+            {nextAppointment ? (
+              <>
+                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#111827' }}>
+                  {new Date(nextAppointment.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#6B7280', marginTop: '0.15rem' }}>
+                  {new Date(nextAppointment.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} • {nextAppointment.note}
+                </div>
+              </>
+            ) : (
+              <div style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '0.5rem' }}>No upcoming visits scheduled.</div>
+            )}
           </div>
         </div>
 
@@ -41,7 +84,6 @@ export default function DashboardPage() {
           <span className={styles.cardTitle}>Baby Heart Rate</span>
           <div className={styles.heartRateValue}>
             142 <span className={styles.unit}>bpm</span>
-            <span className={styles.pulseIcon}>❤️</span>
           </div>
           <div className={styles.statusIndicator}>
             <span>●</span> Normal and steady
@@ -49,26 +91,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Heart Rate Chart */}
-        <div className={styles.card}>
+        <div className={styles.card} style={{ gridColumn: 'span 2' }}>
           <span className={styles.cardTitle}>Heart Rate History (Last 7 Days)</span>
           <div className={styles.chartContainer}>
-            <svg viewBox="0 0 400 120" className={styles.chartSvg}>
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#EC4899" stopOpacity="0.25"/>
-                  <stop offset="100%" stopColor="#EC4899" stopOpacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M 10 120 L 10 80 Q 60 70 120 50 T 220 80 T 310 40 T 390 55 L 390 120 Z" fill="url(#chartGrad)" />
-              <path d="M 10 80 Q 60 70 120 50 T 220 80 T 310 40 T 390 55" fill="none" stroke="#EC4899" strokeWidth="3" strokeLinecap="round" />
-              <circle cx="120" cy="50" r="4" fill="#FFFFFF" stroke="#EC4899" strokeWidth="2" />
-              <circle cx="220" cy="80" r="4" fill="#FFFFFF" stroke="#EC4899" strokeWidth="2" />
-              <circle cx="310" cy="40" r="4" fill="#FFFFFF" stroke="#EC4899" strokeWidth="2" />
-              <circle cx="390" cy="55" r="5" fill="#FFFFFF" stroke="#EC4899" strokeWidth="3" />
-            </svg>
-          </div>
-          <div className={styles.chartLabels}>
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                <XAxis dataKey="name" stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }} 
+                  labelStyle={{ color: '#6B7280', fontSize: 12 }}
+                />
+                <Line type="monotone" dataKey="bpm" stroke="#7C3AED" strokeWidth={3} dot={{ r: 4, fill: '#FFFFFF', stroke: '#7C3AED', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -84,6 +119,12 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <AppointmentModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={addAppointment}
+      />
     </div>
   );
 }

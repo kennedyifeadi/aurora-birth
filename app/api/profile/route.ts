@@ -1,72 +1,58 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Profile from '@/models/Profile';
-
-function getUserId(request: Request) {
-  return request.headers.get('x-user-id');
-}
+import User from '@/models/User';
 
 export async function GET(request: Request) {
   try {
-    const userId = getUserId(request);
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    await connectDB();
-    const profile = await Profile.findOne({ userId });
-
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(profile);
-  } catch (error: any) {
-    console.error('Get Profile Error:', error);
+    await connectDB();
+
+    const user = await User.findById(userId).select('-passwordHash');
+    const profile = await Profile.findOne({ userId });
+
+    return NextResponse.json({
+      user: {
+        id: user?._id,
+        name: user?.name,
+        email: user?.email,
+      },
+      profile: profile || {}
+    });
+  } catch (error) {
+    console.error('API Profile GET Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const userId = getUserId(request);
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const userId = request.headers.get('x-user-id');
+    const payload = await request.json();
 
-    const data = await request.json();
-    await connectDB();
-
-    const existingProfile = await Profile.findOne({ userId });
-    if (existingProfile) {
-      return NextResponse.json({ error: 'Profile already exists' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await Profile.create({ ...data, userId });
-    return NextResponse.json(profile, { status: 201 });
-  } catch (error: any) {
-    console.error('Create Profile Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const userId = getUserId(request);
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const data = await request.json();
     await connectDB();
 
-    const profile = await Profile.findOneAndUpdate(
+    // Remove user/email fields if they accidentally leak into profile payload 
+    // to keep User and Profile tables segregated
+    const { name, email, ...profileData } = payload;
+
+    const updatedProfile = await Profile.findOneAndUpdate(
       { userId },
-      { $set: data },
-      { new: true, runValidators: true }
+      { ...profileData, userId },
+      { upsert: true, new: true }
     );
 
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(profile);
-  } catch (error: any) {
-    console.error('Update Profile Error:', error);
+    return NextResponse.json(updatedProfile);
+  } catch (error) {
+    console.error('API Profile POST Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

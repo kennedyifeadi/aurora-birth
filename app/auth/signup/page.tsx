@@ -2,17 +2,43 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from '../auth.module.css';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Signup Submitting', { name, email, password });
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push('/dashboard');
+      } else {
+        setError(data.error || 'Signup failed');
+      }
+    } catch (err) {
+      setError('An error occurred during signup');
+    }
   };
 
   return (
@@ -24,6 +50,7 @@ export default function SignupPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {error && <p className={styles.error}>{error}</p>}
           <div className={styles.inputGroup}>
             <label className={styles.label} htmlFor="name">Full Name</label>
             <input

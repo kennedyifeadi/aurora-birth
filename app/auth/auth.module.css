@@ -78,6 +78,7 @@
   border-radius: 14px;
   border: 1.5px solid rgba(168, 85, 247, 0.2);
   background: #FFFFFF;
+  color: #1F2937; /* Matches normal dark text */
   font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
@@ -142,6 +143,17 @@
 
 .link:hover {
   text-decoration: underline;
+}
+
+.error {
+  color: #DC2626;
+  font-size: 0.85rem;
+  text-align: center;
+  background: #FEE2E2;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  margin-bottom: 0.25rem;
 }
 
 @media (max-width: 480px) {

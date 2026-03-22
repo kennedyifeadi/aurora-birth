@@ -1,16 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import styles from './mother.module.css';
+import { ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { useUser } from '../context/UserContext';
+import AppointmentModal from '@/components/AppointmentModal';
+
+const waveData = [
+  { value: 10 }, { value: 25 }, { value: 60 }, { value: 20 },
+  { value: 40 }, { value: 80 }, { value: 30 }, { value: 10 },
+];
 
 export default function MotherPage() {
-  const motherName = "Sarah Johnson";
+  const { user, appointments, addAppointment } = useUser();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const motherName = user?.name || "Lovely Mother";
   const pregnancyStage = "Week 24 (2nd Trimester)";
   const cervicalDilation = 3; // cm
-
-  const appointments = [
-    { id: 1, date: "Tuesday, March 24 at 10:00 AM", note: "Regular checkup with Dr. Aris" },
-    { id: 2, date: "Friday, April 10 at 2:30 PM", note: "Anatomy Ultrasound" },
-  ];
 
   return (
     <div className={styles.container}>
@@ -33,26 +40,17 @@ export default function MotherPage() {
             <span style={{ fontSize: '0.9rem', color: '#6B7280' }}>Last peak: 10m ago</span>
           </div>
           <div className={styles.waveContainer}>
-            <svg viewBox="0 0 400 80" className={styles.waveSvg}>
-              <defs>
-                <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#F59E0B" />
-                  <stop offset="50%" stopColor="#FCD34D" />
-                  <stop offset="100%" stopColor="#F59E0B" />
-                </linearGradient>
-              </defs>
-              <path 
-                className={styles.wavePath} 
-                d="M 10 40 Q 50 10 90 40 T 170 40 T 250 40 T 330 40 T 390 40" 
-              />
-              <path 
-                d="M 10 40 Q 50 10 90 40 T 170 10 T 250 40 T 330 10 T 390 40" 
-                fill="none" 
-                stroke="#FCD34D" 
-                strokeWidth="2" 
-                strokeDasharray="4 4" 
-              />
-            </svg>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={waveData} margin={{ top: 5, right: 0, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FCD34D" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="value" stroke="#F59E0B" strokeWidth={3} fill="url(#waveGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -91,18 +89,29 @@ export default function MotherPage() {
           <span className={styles.cardTitle}>Upcoming Visits</span>
           <div className={styles.appointmentList}>
             {appointments.map(app => (
-              <div key={app.id} className={styles.appointmentItem}>
+              <div key={app._id} className={styles.appointmentItem}>
                 <div>
-                  <div className={styles.appointmentDate}>{app.date}</div>
+                  <div className={styles.appointmentDate}>
+                    {new Date(app.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {new Date(app.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                   <div className={styles.appointmentNote}>{app.note}</div>
                 </div>
                 <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>🔔</span>
               </div>
             ))}
+            {appointments.length === 0 && (
+              <div style={{ color: '#6B7280', fontSize: '0.9rem', padding: '1rem 0' }}>No upcoming visits.</div>
+            )}
           </div>
-          <button className={styles.addBtn}>+ Add Appointment</button>
+          <button className={styles.addBtn} onClick={() => setIsModalOpen(true)}>+ Add Appointment</button>
         </div>
       </div>
+
+      <AppointmentModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={addAppointment}
+      />
     </div>
   );
 }
