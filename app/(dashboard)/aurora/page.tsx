@@ -20,7 +20,7 @@ const suggestedQuestions = [
 ];
 
 export default function AuroraAssistant() {
-  const { profile } = useUser();
+  const { user, profile } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -28,9 +28,11 @@ export default function AuroraAssistant() {
 
   // Load History
   useEffect(() => {
-    const saved = localStorage.getItem('aurora_chat_history');
+    if (!user?.id) return;
+
+    const chatKey = `aurora_chat_history_${user.id}`;
+    const saved = localStorage.getItem(chatKey);
     if (saved) {
-      // Parse timestamps back to Date objects if needed, or just keep as strings
       setMessages(JSON.parse(saved));
     } else {
       setMessages([
@@ -42,14 +44,15 @@ export default function AuroraAssistant() {
         }
       ]);
     }
-  }, []);
+  }, [user?.id]);
 
   // Save History
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('aurora_chat_history', JSON.stringify(messages));
+    if (user?.id && messages.length > 0) {
+      const chatKey = `aurora_chat_history_${user.id}`;
+      localStorage.setItem(chatKey, JSON.stringify(messages));
     }
-  }, [messages]);
+  }, [messages, user?.id]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

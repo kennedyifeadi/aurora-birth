@@ -44,9 +44,12 @@ export async function POST(req: Request) {
          // Match if EVERY word of the keyword phrase covers SOME word of user input
          const qualifies = kwWords.every((kWord: string) => {
             return userWords.some((uWord: string) => {
-               // 1. Stemmed/Substring overlap (kicks vs kicking)
-               if (uWord.includes(kWord) || kWord.includes(uWord)) return true;
-               // 2. Levenshtein for typos (boby vs body, length > 3 to avoid 'is' vs 'it' false positives)
+               // 1. Exact match
+               if (uWord === kWord) return true;
+               // 2. Stemmed/Substring overlap (e.g. kWord="kicking", uWord="kick")
+               // Guard: only backwards check if uWord is long enough to avoid stop-words like 'i' or 'a'
+               if (uWord.includes(kWord) || (uWord.length > 3 && kWord.includes(uWord))) return true;
+               // 3. Levenshtein for typos (boby vs body)
                if (kWord.length > 3 && levenshtein(uWord, kWord) <= 1) return true;
                return false;
             });

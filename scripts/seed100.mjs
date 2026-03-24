@@ -7,8 +7,12 @@ const envPath = path.resolve(process.cwd(), '.env');
 const envConfig = fs.readFileSync(envPath, 'utf8')
   .split('\n')
   .reduce((acc, line) => {
-    const [key, value] = line.split('=');
-    if (key && value) acc[key.trim()] = value.trim();
+    const index = line.indexOf('=');
+    if (index > 0) {
+      const key = line.substring(0, index).trim();
+      const value = line.substring(index + 1).trim();
+      acc[key] = value;
+    }
     return acc;
   }, {});
 

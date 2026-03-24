@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiHome, FiHeart, FiSmile, FiUser, FiLogOut, FiMenu, FiSearch, FiBell } from 'react-icons/fi';
 import { PiSparkle } from 'react-icons/pi'; 
 import styles from './dashboard.module.css';
@@ -86,6 +86,25 @@ export default function DashboardLayout({
 function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useUser();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(2); // Mock starting count
+
+  // Live Debounced Search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.trim().length > 1) {
+        fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
+          .then(res => res.json())
+          .then(data => setSearchResults(data.results || []))
+          .catch(err => console.error('Search failed:', err));
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   return (
     <>
@@ -95,12 +114,38 @@ function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
         </button>
         <div className={styles.searchBar}>
           <FiSearch className={styles.searchIcon} />
-          <input type="text" placeholder="Search logs, readings, tips..." className={styles.searchInput} />
+          <input 
+            type="text" 
+            placeholder="Search logs, readings, tips..." 
+            className={styles.searchInput} 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          {/* Floating Search Results Dropdown */}
+          {searchQuery.trim().length > 1 && (
+            <div className={styles.searchResultsDropdown}>
+              {searchResults.length > 0 ? (
+                searchResults.map(item => (
+                  <div key={item.id} className={styles.searchResultItem}>
+                    <div className={styles.searchResultQuestion}>{item.question}</div>
+                    <div className={styles.searchResultAnswer}>{item.response.substring(0, 60)}...</div>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.searchNoResult}>No matches found.</div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className={styles.topNavRight}>
-          <button className={styles.iconButton} onClick={() => setIsNotificationsOpen(true)}>
+          <button 
+            className={styles.iconButton} 
+            onClick={() => { setIsNotificationsOpen(true); setUnreadCount(0); }}
+          >
             <FiBell />
+            {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
           </button>
           <div className={styles.profileDropdownTrigger} onClick={() => window.location.href = '/profile'}>
             <div className={styles.avatar}>{user?.name?.[0] || 'U'}</div>
