@@ -16,7 +16,7 @@ interface FieldConfig {
 interface SectionConfig {
   key: string;
   title: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   fields: FieldConfig[];
 }
 

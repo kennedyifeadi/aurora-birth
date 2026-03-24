@@ -14,6 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const pathname = usePathname();
 
   const navItems = [
@@ -33,8 +34,13 @@ export default function DashboardLayout({
   return (
     <div className={styles.layoutWrapper}>
       <UserProvider>
+        {/* Backdrop overlay for mobile */}
+        {isMobileNavOpen && (
+          <div className={styles.backdrop} onClick={() => setIsMobileNavOpen(false)} />
+        )}
+
         {/* Sidebar */}
-        <aside className={`${styles.sidebar} ${isSidebarCollapsed ? styles.collapsed : ''}`}>
+        <aside className={`${styles.sidebar} ${isSidebarCollapsed ? styles.collapsed : ''} ${isMobileNavOpen ? styles.mobileOpen : ''}`}>
           <div className={styles.sidebarHeader}>
             {!isSidebarCollapsed && <h2 className={styles.logo}>Aurora Birth</h2>}
             <button className={styles.toggleBtn} onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
@@ -65,7 +71,7 @@ export default function DashboardLayout({
 
         {/* Main Content Area */}
         <div className={styles.mainArea}>
-          <TopNav />
+          <TopNav onMenuClick={() => setIsMobileNavOpen(true)} />
 
           {/* Content */}
           <main className={styles.pageContent}>
@@ -77,13 +83,16 @@ export default function DashboardLayout({
   );
 }
 
-function TopNav() {
+function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useUser();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
     <>
       <header className={styles.topNav}>
+        <button className={styles.mobileMenuBtn} onClick={onMenuClick}>
+          <FiMenu />
+        </button>
         <div className={styles.searchBar}>
           <FiSearch className={styles.searchIcon} />
           <input type="text" placeholder="Search logs, readings, tips..." className={styles.searchInput} />

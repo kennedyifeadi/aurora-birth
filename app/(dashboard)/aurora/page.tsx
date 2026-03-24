@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiSend } from 'react-icons/fi';
 import styles from './aurora.module.css';
+import { useUser } from '../context/UserContext';
 
 interface Message {
   id: string;
@@ -11,35 +12,50 @@ interface Message {
   timestamp: Date;
 }
 
+// Suggested questions for initial load
 const suggestedQuestions = [
   "Why hasn’t my baby kicked today?",
   "Is it normal to feel tired?",
   "What should I expect this month?",
 ];
 
-const mockResponses: { [key: string]: string } = {
-  "Why hasn’t my baby kicked today?": "It can be normal for movement to vary, especially if you are active or the baby is sleeping. Try drinking cold water or lying on your left side for an hour. If you don't feel 10 kicks in 2 hours, please contact your doctor.",
-  "Is it normal to feel tired?": "Yes, fatigue is very common, especially in the first and third trimesks as your body works on building support systems. Make sure to rest when you can and stay hydrated.",
-  "What should I expect this month?": "This month usually brings structural diagnostics checks. Your baby is developing lungs fully, and you might notice more rhythmic kicks!",
-};
-
 export default function AuroraAssistant() {
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: 'initial',
-      sender: 'aurora',
-      text: 'Hello! I am Aurora, your pregnancy assistant. How can I guide you today?',
-      timestamp: new Date()
-    }
-  ]);
+  const { profile } = useUser();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Load History
+  useEffect(() => {
+    const saved = localStorage.getItem('aurora_chat_history');
+    if (saved) {
+      // Parse timestamps back to Date objects if needed, or just keep as strings
+      setMessages(JSON.parse(saved));
+    } else {
+      setMessages([
+        {
+          id: 'initial',
+          sender: 'aurora',
+          text: 'Hello! I am Aurora, your pregnancy assistant. How can I guide you today?',
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, []);
+
+  // Save History
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('aurora_chat_history', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  const handleSendMessage = useCallback((text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const userMsg: Message = {
@@ -51,19 +67,32 @@ export default function AuroraAssistant() {
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const reply = mockResponses[text] || "I am processing that question dynamically. Please consult your physician for specific medical scenarios, but generally maintaining steady hydration helps.";
+    try {
+      const resp = await fetch('/api/aurora/chat', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({ text })
+      });
+      const data = await resp.json();
+
       const auroraMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'aurora',
-        text: reply,
+        text: data.text || data.error || 'Sorry, I encountered an error answering that.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, auroraMsg]);
-    }, 800);
-  }, []);
+    } catch (error) {
+      console.error('Aurora Chat Error:', error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -93,8 +122,30 @@ export default function AuroraAssistant() {
             className={`${styles.messageBubble} ${msg.sender === 'aurora' ? styles.auroraMessage : styles.userMessage}`}
           >
             {msg.text}
+
+            {/* Contextual Doctor Action Card */}
+            {msg.sender === 'aurora' && (msg.text?.includes('doctor') || msg.text?.includes('medical facility')) && profile?.doctor?.name && (
+              <div className={styles.doctorActionCard}>
+                <div className={styles.doctorInfo}>
+                  <span className={styles.doctorLabel}>Your Doctor:</span>
+                  <span className={styles.doctorName}>{profile.doctor.name}</span>
+                </div>
+                {profile.doctor.phone && (
+                  <a href={`tel:${profile.doctor.phone}`} className={styles.callDoctorBtn}>
+                    Call Now
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         ))}
+        {isTyping && (
+          <div className={`${styles.messageBubble} ${styles.auroraMessage} ${styles.typing}`}>
+            <span className={styles.dot}></span>
+            <span className={styles.dot}></span>
+            <span className={styles.dot}></span>
+          </div>
+        )}
         <div ref={chatEndRef} />
       </div>
 

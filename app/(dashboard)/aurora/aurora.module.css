@@ -137,7 +137,87 @@
   cursor: pointer;
   transition: background 0.2s;
 }
-
+@media (max-width: 640px) {
+  .messageBubble {
+    max-width: 88% !important;
+  }
+  .inputBar {
+    padding: 0.625rem 0.875rem;
+  }
+}
 .sendBtn:hover {
   background: #6D28D9;
+}
+
+/* Typing Indicator */
+.typing {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 0.75rem 1rem;
+}
+
+/* Doctor Action Card */
+.doctorActionCard {
+  margin-top: 0.75rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  animation: slideIn 0.3s ease-out;
+}
+
+.doctorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.doctorLabel {
+  font-size: 0.75rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.doctorName {
+  font-size: 0.875rem;
+  color: #1F2937;
+  font-weight: 600;
+}
+
+.callDoctorBtn {
+  background: #10B981; /* Green for medical call */
+  color: white;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.callDoctorBtn:hover {
+  background: #059669;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: #6B7280;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
 }
